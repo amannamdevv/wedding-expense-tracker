@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>शुभ विवाह — Wedding Expense Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d98a;
+    --gold-pale: #fdf8ee;
+    --maroon: #7b1c2e;
+    --maroon-light: #a0293f;
+    --cream: #fffdf5;
+    --text-dark: #2d1a0e;
+    --text-mid: #5a3e28;
+    --text-light: #9a7a5a;
+    --white: #ffffff;
+    --border: #e8d9b0;
+    --shadow: rgba(120, 60, 20, 0.12);
+    --green: #3a7d44;
+    --red: #b33030;
+    --bg-deco: #7b1e3e14;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at top left, #fdf0d0 0%, transparent 60%),
+      radial-gradient(ellipse at bottom right, #fbe8e8 0%, transparent 60%);
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    background: linear-gradient(135deg, var(--maroon) 0%, #5a1020 60%, var(--maroon-light) 100%);
+    color: var(--white);
+    text-align: center;
+    padding: 28px 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 18px,
+      rgba(255,255,255,0.03) 18px,
+      rgba(255,255,255,0.03) 19px
+    );
+  }
+  header .ornament { font-size: 1.4rem; color: var(--gold-light); letter-spacing: 6px; display: block; margin-bottom: 6px; }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 700; color: var(--gold-light); letter-spacing: 1px; }
+  header p { font-size: 0.88rem; color: rgba(255,255,255,0.7); margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ---- SUMMARY CARDS ---- */
+  .summary-bar {
+    display: flex;
+    gap: 14px;
+    padding: 20px 20px 0;
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .summary-card {
+    flex: 1 1 160px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 12px var(--shadow);
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .summary-card:hover { transform: translateY(-2px); }
+  .summary-card .label { font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .summary-card .amount { font-family: 'Playfair Display', serif; font-size: 1.55rem; font-weight: 700; color: var(--maroon); }
+  .summary-card .count { font-size: 0.8rem; color: var(--text-light); margin-top: 3px; }
+  .summary-card.total { border-color: var(--gold); background: linear-gradient(135deg, #fff9ee, #fff3d4); }
+  .summary-card.total .amount { color: var(--gold); font-size: 1.9rem; }
+
+  /* ---- MAIN LAYOUT ---- */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 640px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  /* ---- CARD ---- */
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 2px 16px var(--shadow);
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: var(--maroon);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1.5px solid var(--border);
+    padding-bottom: 12px;
+  }
+  .card-title .icon { font-size: 1.2rem; }
+
+  /* ---- FORM ---- */
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-mid); margin-bottom: 5px; letter-spacing: 0.5px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: var(--gold-pale);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.15); background: #fff; }
+
+  .btn-add {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--maroon), var(--maroon-light));
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.15s;
+    margin-top: 6px;
+  }
+  .btn-add:hover { opacity: 0.92; transform: translateY(-1px); }
+  .btn-add:active { transform: translateY(0); }
+
+  /* ---- FILTERS ---- */
+  .list-card { grid-column: 1 / -1; }
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--gold-pale);
+    color: var(--text-mid);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--maroon);
+    color: var(--white);
+    border-color: var(--maroon);
+  }
+
+  /* ---- EXPENSE LIST ---- */
+  .expense-list { display: flex; flex-direction: column; gap: 10px; }
+  .expense-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 15px;
+    background: var(--gold-pale);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    transition: box-shadow 0.2s, transform 0.15s;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .expense-item:hover { box-shadow: 0 4px 14px var(--shadow); transform: translateY(-1px); }
+
+  .cat-badge {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .expense-info { flex: 1; min-width: 0; }
+  .expense-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .expense-meta { font-size: 0.75rem; color: var(--text-light); margin-top: 2px; }
+
+  .expense-amount { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--maroon); white-space: nowrap; }
+
+  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-icon {
+    width: 32px; height: 32px;
+    border: none; border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .btn-edit { background: #fff3d4; color: var(--gold); }
+  .btn-edit:hover { background: var(--gold); color: white; }
+  .btn-del { background: #fde8e8; color: var(--red); }
+  .btn-del:hover { background: var(--red); color: white; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+  }
+  .empty-state .emoji { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ---- MODAL ---- */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(45, 10, 10, 0.55);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(100,20,20,0.3);
+    animation: popIn 0.25s ease;
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--maroon); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-cancel {
+    flex: 1; padding: 11px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--gold-pale);
+    color: var(--text-mid);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-save {
+    flex: 1; padding: 11px;
+    background: linear-gradient(135deg, var(--maroon), var(--maroon-light));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ---- CATEGORY COLORS ---- */
+  .cat-Decoration  { background: #fff0c8; }
+  .cat-Food        { background: #e8f8ed; }
+  .cat-Clothes     { background: #f0e8ff; }
+  .cat-Jewelry     { background: #fff4e6; }
+  .cat-Misc        { background: #e8f0ff; }
+
+  /* ---- DELETE CONFIRM MODAL ---- */
+  .confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(45,10,10,0.55);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+  }
+  .confirm-overlay.open { display: flex; }
+  .confirm-box {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 32px 28px 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(100,20,20,0.35);
+    animation: popIn 0.22s ease;
+  }
+  .confirm-box .confirm-icon { font-size: 2.8rem; margin-bottom: 12px; }
+  .confirm-box .confirm-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--maroon);
+    margin-bottom: 8px;
+  }
+  .confirm-box .confirm-msg { font-size: 0.88rem; color: var(--text-light); margin-bottom: 24px; }
+  .confirm-btns { display: flex; gap: 12px; }
+  .btn-confirm-cancel {
+    flex: 1; padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--gold-pale);
+    color: var(--text-mid);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-confirm-cancel:hover { background: var(--border); }
+  .btn-confirm-ok {
+    flex: 1; padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #c0392b, #8b0000);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-confirm-ok:hover { opacity: 0.88; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.78rem;
+    color: var(--text-light);
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="ornament">✦ ॥ शुभ विवाह ॥ ✦</span>
+  <h1>Wedding Expense Tracker</h1>
+  <p>Abhishek & Tanu — May 2026</p>
+</header>
+
+<!-- Summary -->
+<div class="summary-bar" id="summaryBar">
+  <div class="summary-card total">
+    <div class="label">Total Spent</div>
+    <div class="amount" id="totalAmount">₹0</div>
+    <div class="count" id="totalCount">0 expenses</div>
+  </div>
+  <div class="summary-card"><div class="label">🌸 Decoration</div><div class="amount" id="catDecoration">₹0</div></div>
+  <div class="summary-card"><div class="label">🍛 Food</div><div class="amount" id="catFood">₹0</div></div>
+  <div class="summary-card"><div class="label">👗 Clothes</div><div class="amount" id="catClothes">₹0</div></div>
+  <div class="summary-card"><div class="label">💍 Jewelry</div><div class="amount" id="catJewelry">₹0</div></div>
+  <div class="summary-card"><div class="label">📦 Misc</div><div class="amount" id="catMisc">₹0</div></div>
+</div>
+
+<div class="container">
+
+  <!-- ADD FORM -->
+  <div class="card">
+    <div class="card-title"><span class="icon">➕</span> Add Expense</div>
+    <div class="form-group">
+      <label>Item Name</label>
+      <input type="text" id="itemName" placeholder="e.g. Marigold garlands" maxlength="60">
+    </div>
+    <div class="form-group">
+      <label>Amount (₹)</label>
+      <input type="number" id="itemAmount" placeholder="e.g. 5000" min="0">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="itemCategory">
+        <option value="">-- Select Category --</option>
+        <option value="Decoration">🌸 Decoration</option>
+        <option value="Food">🍛 Food</option>
+        <option value="Clothes">👗 Clothes</option>
+        <option value="Jewelry">💍 Jewelry</option>
+        <option value="Misc">📦 Misc</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="itemDate">
+    </div>
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <input type="text" id="itemNote" placeholder="Any extra detail..." maxlength="100">
+    </div>
+    <button class="btn-add" onclick="addExpense()">✦ Add Expense</button>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+    <div class="card-title"><span class="icon">📊</span> Budget Overview</div>
+    <div class="form-group">
+      <label>Set Total Budget (₹)</label>
+      <input type="number" id="budgetInput" placeholder="e.g. 500000" oninput="saveBudget()">
+    </div>
+    <div id="budgetBar" style="display:none;">
+      <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-light);margin-bottom:6px;">
+        <span>Spent</span><span id="budgetPercent">0%</span>
+      </div>
+      <div style="height:12px;background:var(--border);border-radius:10px;overflow:hidden;">
+        <div id="budgetFill" style="height:100%;border-radius:10px;background:linear-gradient(90deg,var(--gold),var(--maroon));transition:width 0.4s;width:0%;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-light);margin-top:6px;">
+        <span>Budget: <strong id="budgetDisplay">₹0</strong></span>
+        <span>Remaining: <strong id="budgetRemain" style="color:var(--green);">₹0</strong></span>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;">
+      <div class="card-title" style="margin-top:10px;"><span class="icon">📅</span> Upcoming Events</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.85rem;">
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--border);">
+          <span>🪔 Matri Puja / Mandap</span><span style="color:var(--maroon);font-weight:700;">10 May</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--border);">
+          <span>🌿 Mehendi</span><span style="color:var(--maroon);font-weight:700;">11 May</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--border);">
+          <span>🎉 Tilak &amp; Priti Bhoj</span><span style="color:var(--maroon);font-weight:700;">08 May</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--border);">
+          <span>💒 Vivah</span><span style="color:var(--maroon);font-weight:700;">12 May</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--gold-pale);border-radius:8px;border:1px solid var(--border);">
+          <span>🏠 Vadhu Pravesh</span><span style="color:var(--maroon);font-weight:700;">13 May</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPENSE LIST -->
+  <div class="card list-card">
+    <div class="card-title"><span class="icon">📋</span> All Expenses</div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('All', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('Decoration', this)">🌸 Decoration</button>
+      <button class="filter-btn" onclick="setFilter('Food', this)">🍛 Food</button>
+      <button class="filter-btn" onclick="setFilter('Clothes', this)">👗 Clothes</button>
+      <button class="filter-btn" onclick="setFilter('Jewelry', this)">💍 Jewelry</button>
+      <button class="filter-btn" onclick="setFilter('Misc', this)">📦 Misc</button>
+    </div>
+    <div class="expense-list" id="expenseList"></div>
+  </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Expense</div>
+    <div class="form-group"><label>Item Name</label><input type="text" id="editName" maxlength="60"></div>
+    <div class="form-group"><label>Amount (₹)</label><input type="number" id="editAmount" min="0"></div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="editCategory">
+        <option value="Decoration">🌸 Decoration</option>
+        <option value="Food">🍛 Food</option>
+        <option value="Clothes">👗 Clothes</option>
+        <option value="Jewelry">💍 Jewelry</option>
+        <option value="Misc">📦 Misc</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Date</label><input type="date" id="editDate"></div>
+    <div class="form-group"><label>Note</label><input type="text" id="editNote" maxlength="100"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="confirm-overlay" id="confirmModal">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete Expense?</div>
+    <div class="confirm-msg">Kya aap sach mein is expense ko delete karna chahte hain? Yeh wapas nahi aayega.</div>
+    <div class="confirm-btns">
+      <button class="btn-confirm-cancel" onclick="closeConfirm()">❌ Cancel</button>
+      <button class="btn-confirm-ok" onclick="confirmDelete()">✅ OK, Delete</button>
+    </div>
+  </div>
+</div>
+
+<footer>✦ शुभ विवाह — Abhishek &amp; Tanu — May 2026 ✦</footer>
+
+<script>
+const CAT_ICONS = { Decoration: '🌸', Food: '🍛', Clothes: '👗', Jewelry: '💍', Misc: '📦' };
+let expenses = JSON.parse(localStorage.getItem('wedding_expenses') || '[]');
+let budget = parseFloat(localStorage.getItem('wedding_budget') || '0');
+let currentFilter = 'All';
+let editId = null;
+
+// Set today as default date
+document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
+
+// Init budget
+if (budget) {
+  document.getElementById('budgetInput').value = budget;
+  document.getElementById('budgetBar').style.display = 'block';
+}
+
+function save() { localStorage.setItem('wedding_expenses', JSON.stringify(expenses)); }
+function saveBudget() {
+  budget = parseFloat(document.getElementById('budgetInput').value) || 0;
+  localStorage.setItem('wedding_budget', budget);
+  document.getElementById('budgetBar').style.display = budget ? 'block' : 'none';
+  updateSummary();
+}
+
+function fmt(n) {
+  if (n >= 100000) return '₹' + (n/100000).toFixed(1) + 'L';
+  if (n >= 1000) return '₹' + (n/1000).toFixed(1) + 'k';
+  return '₹' + n.toLocaleString('en-IN');
+}
+
+function updateSummary() {
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  document.getElementById('totalAmount').textContent = '₹' + total.toLocaleString('en-IN');
+  document.getElementById('totalCount').textContent = expenses.length + ' expense' + (expenses.length !== 1 ? 's' : '');
+
+  ['Decoration','Food','Clothes','Jewelry','Misc'].forEach(cat => {
+    const sum = expenses.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
+    document.getElementById('cat' + cat).textContent = fmt(sum);
+  });
+
+  if (budget > 0) {
+    const pct = Math.min((total / budget) * 100, 100);
+    document.getElementById('budgetFill').style.width = pct + '%';
+    document.getElementById('budgetFill').style.background = pct > 90 ? 'linear-gradient(90deg,#e05,#b00)' : 'linear-gradient(90deg,var(--gold),var(--maroon))';
+    document.getElementById('budgetPercent').textContent = pct.toFixed(1) + '%';
+    document.getElementById('budgetDisplay').textContent = '₹' + budget.toLocaleString('en-IN');
+    const rem = budget - total;
+    const remEl = document.getElementById('budgetRemain');
+    remEl.textContent = '₹' + Math.abs(rem).toLocaleString('en-IN') + (rem < 0 ? ' over!' : '');
+    remEl.style.color = rem < 0 ? 'var(--red)' : 'var(--green)';
+  }
+}
+
+function renderList() {
+  const list = document.getElementById('expenseList');
+  const filtered = currentFilter === 'All' ? expenses : expenses.filter(e => e.category === currentFilter);
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">🌸</div><div>No expenses yet${currentFilter !== 'All' ? ' in ' + currentFilter : ''}.</div><div style="font-size:0.8rem;margin-top:6px;color:var(--text-light)">Add your first expense above!</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.slice().reverse().map(e => `
+    <div class="expense-item">
+      <div class="cat-badge cat-${e.category}">${CAT_ICONS[e.category] || '📦'}</div>
+      <div class="expense-info">
+        <div class="expense-name">${escHtml(e.name)}</div>
+        <div class="expense-meta">${e.category} · ${formatDate(e.date)}${e.note ? ' · ' + escHtml(e.note) : ''}</div>
+      </div>
+      <div class="expense-amount">₹${e.amount.toLocaleString('en-IN')}</div>
+      <div class="item-actions">
+        <button class="btn-icon btn-edit" onclick="openEdit('${e.id}')" title="Edit">✏️</button>
+        <button class="btn-icon btn-del" onclick="deleteExpense('${e.id}')" title="Delete">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return day + '/' + m + '/' + y; }
+
+function addExpense() {
+  const name = document.getElementById('itemName').value.trim();
+  const amount = parseFloat(document.getElementById('itemAmount').value);
+  const category = document.getElementById('itemCategory').value;
+  const date = document.getElementById('itemDate').value;
+  const note = document.getElementById('itemNote').value.trim();
+
+  if (!name) { alert('Please enter an item name.'); return; }
+  if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+  if (!category) { alert('Please select a category.'); return; }
+
+  expenses.push({ id: Date.now().toString(), name, amount, category, date, note });
+  save(); updateSummary(); renderList();
+
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemAmount').value = '';
+  document.getElementById('itemCategory').value = '';
+  document.getElementById('itemNote').value = '';
+  document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('itemName').focus();
+}
+
+let pendingDeleteId = null;
+
+function deleteExpense(id) {
+  pendingDeleteId = id;
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm() {
+  pendingDeleteId = null;
+  document.getElementById('confirmModal').classList.remove('open');
+}
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  expenses = expenses.filter(e => e.id !== pendingDeleteId);
+  save(); updateSummary(); renderList();
+  closeConfirm();
+}
+
+function openEdit(id) {
+  const e = expenses.find(x => x.id === id);
+  if (!e) return;
+  editId = id;
+  document.getElementById('editName').value = e.name;
+  document.getElementById('editAmount').value = e.amount;
+  document.getElementById('editCategory').value = e.category;
+  document.getElementById('editDate').value = e.date;
+  document.getElementById('editNote').value = e.note || '';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('editModal').classList.remove('open'); editId = null; }
+
+function saveEdit() {
+  const name = document.getElementById('editName').value.trim();
+  const amount = parseFloat(document.getElementById('editAmount').value);
+  const category = document.getElementById('editCategory').value;
+  const date = document.getElementById('editDate').value;
+  const note = document.getElementById('editNote').value.trim();
+  if (!name || !amount || !category) { alert('Please fill all required fields.'); return; }
+  const idx = expenses.findIndex(e => e.id === editId);
+  if (idx !== -1) expenses[idx] = { ...expenses[idx], name, amount, category, date, note };
+  save(); updateSummary(); renderList(); closeModal();
+}
+
+function setFilter(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+  if (e.target === this) closeConfirm();
+});
+
+// Close modal on overlay click
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Enter key on add form
+document.querySelectorAll('#itemName, #itemAmount, #itemCategory, #itemDate, #itemNote').forEach(el => {
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); });
+});
+
+updateSummary();
+renderList();
+</script>
+</body>
+</html>
