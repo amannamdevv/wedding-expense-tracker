@@ -61,6 +61,34 @@
   header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 700; color: var(--gold-light); letter-spacing: 1px; }
   header p { font-size: 0.88rem; color: rgba(255,255,255,0.7); margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
 
+  /* ---- WHATSAPP BUTTON ---- */
+  .whatsapp-wrap {
+    max-width: 900px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+  }
+  .btn-whatsapp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 15px;
+    background: #25D366;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(37,211,102,0.35);
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .btn-whatsapp:hover { opacity: 0.9; transform: translateY(-2px); }
+  .btn-whatsapp:active { transform: translateY(0); }
+
   /* ---- SUMMARY CARDS ---- */
   .summary-bar {
     display: flex;
@@ -359,6 +387,13 @@
   <p>Abhishek & Tanu — May 2026</p>
 </header>
 
+<!-- WHATSAPP SHARE BUTTON -->
+<div class="whatsapp-wrap">
+  <button class="btn-whatsapp" onclick="shareWhatsApp()">
+    💬 WhatsApp pe Kharch Share Karo
+  </button>
+</div>
+
 <!-- Summary -->
 <div class="summary-bar" id="summaryBar">
   <div class="summary-card total">
@@ -513,10 +548,8 @@ let budget = parseFloat(localStorage.getItem('wedding_budget') || '0');
 let currentFilter = 'All';
 let editId = null;
 
-// Set today as default date
 document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
 
-// Init budget
 if (budget) {
   document.getElementById('budgetInput').value = budget;
   document.getElementById('budgetBar').style.display = 'block';
@@ -540,12 +573,10 @@ function updateSummary() {
   const total = expenses.reduce((s, e) => s + e.amount, 0);
   document.getElementById('totalAmount').textContent = '₹' + total.toLocaleString('en-IN');
   document.getElementById('totalCount').textContent = expenses.length + ' expense' + (expenses.length !== 1 ? 's' : '');
-
   ['Decoration','Food','Clothes','Jewelry','Misc'].forEach(cat => {
     const sum = expenses.filter(e => e.category === cat).reduce((s, e) => s + e.amount, 0);
     document.getElementById('cat' + cat).textContent = fmt(sum);
   });
-
   if (budget > 0) {
     const pct = Math.min((total / budget) * 100, 100);
     document.getElementById('budgetFill').style.width = pct + '%';
@@ -585,20 +616,55 @@ function renderList() {
 function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split('-'); return day + '/' + m + '/' + y; }
 
+// ---- WHATSAPP SHARE ----
+function shareWhatsApp() {
+  if (!expenses.length) { alert('Koi expense nahi hai abhi add karo pehle!'); return; }
+
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  const cats = ['Decoration','Food','Clothes','Jewelry','Misc'];
+
+  let msg = '';
+  msg += '🙏 *शुभ विवाह*\n';
+  msg += '*Abhishek & Tanu — May 2026*\n';
+  msg += '*Vivah Ka Pura Kharch*\n';
+  msg += '━━━━━━━━━━━━━━━━━━\n\n';
+
+  cats.forEach(cat => {
+    const items = expenses.filter(e => e.category === cat);
+    if (!items.length) return;
+    msg += CAT_ICONS[cat] + ' *' + cat + '*\n';
+    items.forEach(e => {
+      msg += '  • ' + e.name + '\n';
+      msg += '    ₹' + e.amount.toLocaleString('en-IN') + '\n';
+      if (e.note) msg += '    (' + e.note + ')\n';
+    });
+    msg += '\n';
+  });
+
+  msg += '━━━━━━━━━━━━━━━━━━\n';
+  msg += '💰 *Kul Kharch: ₹' + total.toLocaleString('en-IN') + '*\n';
+  msg += '📦 Kul Items: ' + expenses.length + '\n';
+  if (budget > 0) {
+    const rem = budget - total;
+    msg += '🎯 Budget: ₹' + budget.toLocaleString('en-IN') + '\n';
+    msg += (rem >= 0 ? '✅ Bacha: ₹' : '⚠️ Zyada: ₹') + Math.abs(rem).toLocaleString('en-IN') + '\n';
+  }
+  msg += '\n🌺 *Shubh Vivah!* 🌺';
+
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
 function addExpense() {
   const name = document.getElementById('itemName').value.trim();
   const amount = parseFloat(document.getElementById('itemAmount').value);
   const category = document.getElementById('itemCategory').value;
   const date = document.getElementById('itemDate').value;
   const note = document.getElementById('itemNote').value.trim();
-
   if (!name) { alert('Please enter an item name.'); return; }
   if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
   if (!category) { alert('Please select a category.'); return; }
-
   expenses.push({ id: Date.now().toString(), name, amount, category, date, note });
   save(); updateSummary(); renderList();
-
   document.getElementById('itemName').value = '';
   document.getElementById('itemAmount').value = '';
   document.getElementById('itemCategory').value = '';
@@ -608,20 +674,12 @@ function addExpense() {
 }
 
 let pendingDeleteId = null;
-
-function deleteExpense(id) {
-  pendingDeleteId = id;
-  document.getElementById('confirmModal').classList.add('open');
-}
-function closeConfirm() {
-  pendingDeleteId = null;
-  document.getElementById('confirmModal').classList.remove('open');
-}
+function deleteExpense(id) { pendingDeleteId = id; document.getElementById('confirmModal').classList.add('open'); }
+function closeConfirm() { pendingDeleteId = null; document.getElementById('confirmModal').classList.remove('open'); }
 function confirmDelete() {
   if (!pendingDeleteId) return;
   expenses = expenses.filter(e => e.id !== pendingDeleteId);
-  save(); updateSummary(); renderList();
-  closeConfirm();
+  save(); updateSummary(); renderList(); closeConfirm();
 }
 
 function openEdit(id) {
@@ -635,9 +693,7 @@ function openEdit(id) {
   document.getElementById('editNote').value = e.note || '';
   document.getElementById('editModal').classList.add('open');
 }
-
 function closeModal() { document.getElementById('editModal').classList.remove('open'); editId = null; }
-
 function saveEdit() {
   const name = document.getElementById('editName').value.trim();
   const amount = parseFloat(document.getElementById('editAmount').value);
@@ -657,16 +713,8 @@ function setFilter(cat, btn) {
   renderList();
 }
 
-document.getElementById('confirmModal').addEventListener('click', function(e) {
-  if (e.target === this) closeConfirm();
-});
-
-// Close modal on overlay click
-document.getElementById('editModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-// Enter key on add form
+document.getElementById('confirmModal').addEventListener('click', function(e) { if (e.target === this) closeConfirm(); });
+document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
 document.querySelectorAll('#itemName, #itemAmount, #itemCategory, #itemDate, #itemNote').forEach(el => {
   el.addEventListener('keydown', e => { if (e.key === 'Enter') addExpense(); });
 });
